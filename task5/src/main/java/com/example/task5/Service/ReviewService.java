@@ -71,4 +71,13 @@ public class ReviewService {
         restaurant.setRating(BigDecimal.valueOf(average).setScale(2, RoundingMode.HALF_UP));
         restaurantRepository.save(restaurant);
     }
+
+    public ReviewResponseDTO findById(Long id) {
+        Review existing = reviewRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Review not found with id: " + id));
+
+
+        return reviewMapper.toDTO(existing);
+    }
+
 }

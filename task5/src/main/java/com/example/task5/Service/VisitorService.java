@@ -43,5 +43,10 @@ public class VisitorService {
 
         return mapper.toDTO(updated);
     }
+    public VisitorResponseDTO findById(Long id){
+        Visitor existingVisitor = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Visitor not found with id: " + id));
+        return  mapper.toDTO(existingVisitor);
+    }
 }
 
