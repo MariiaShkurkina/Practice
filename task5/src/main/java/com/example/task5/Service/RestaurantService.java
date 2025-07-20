@@ -43,5 +43,13 @@ public class RestaurantService {
         repository.save(existing);
         return mapper.toDTO(existing);
     }
+
+    public RestaurantResponseDTO findById(Long id) {
+        Restaurant existing = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Restaurant not found with id: " + id));
+
+
+        return mapper.toDTO(existing);
+    }
 }
 
