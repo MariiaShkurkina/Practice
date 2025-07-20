@@ -28,7 +28,7 @@ public class ReviewMapper {
                 review.getId(),
                 review.getVisitor(),
                 review.getRestaurant(),
-                review.getScore(),
+                review.getRating(),
                 review.getComment()
         );
     }
