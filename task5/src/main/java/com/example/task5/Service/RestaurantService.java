@@ -27,9 +27,8 @@ public class RestaurantService {
     }
 
     public void deleteById(Long id) {
-        Restaurant restaurant = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Restaurant not found with id: " + id));
-        repository.remove(restaurant);
+
+        repository.deleteById(id);
     }
 
     public RestaurantResponseDTO update(Long id, RestaurantRequestDTO dto) {

@@ -13,65 +13,62 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
+
 public class ReviewService {
-    private final ReviewRepository repository;
+
+    private final ReviewRepository reviewRepository;
     private final RestaurantRepository restaurantRepository;
-    private final ReviewMapper mapper;
+    private final ReviewMapper reviewMapper; // нужен для конвертации между DTO и сущностью
 
     public ReviewResponseDTO save(ReviewRequestDTO dto) {
-        Review review = mapper.toEntity(dto);
-
-        Restaurant restaurant = restaurantRepository.findById(dto.getRestaurant().getId())
-                .orElseThrow(() -> new RuntimeException("Restaurant not found with id: " + dto.getRestaurant().getId()));
-        review.setRestaurant(restaurant);
-
-        repository.save(review);
-        updateRestaurantRating(restaurant);
-
-        return mapper.toDTO(review);
-    }
-
-    public List<ReviewResponseDTO> findAll() {
-        return repository.findAll().stream().map(mapper::toDTO).toList();
-    }
-
-    public void deleteById(Long id) {
-        Review review = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Review not found with id: " + id));
-        repository.remove(review);
-        updateRestaurantRating(review.getRestaurant());
+        Review review = reviewMapper.toEntity(dto);
+        Review saved = reviewRepository.save(review);
+        updateRestaurantRating(saved.getRestaurant());
+        return reviewMapper.toDTO(saved);
     }
 
     public ReviewResponseDTO update(Long id, ReviewRequestDTO dto) {
-        Review existing = repository.findById(id)
+        Review existing = reviewRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Review not found with id: " + id));
 
+        // Обновляем поля
+        existing.setVisitor(dto.getVisitor());
+        existing.setRestaurant(dto.getRestaurant());
+        existing.setRating(dto.getRating());
         existing.setComment(dto.getComment());
-        existing.setScore(dto.getRating());
 
-        Restaurant restaurant = restaurantRepository.findById(dto.getRestaurant().getId())
-                .orElseThrow(() -> new RuntimeException("Restaurant not found with id: " + dto.getRestaurant().getId()));
-        existing.setRestaurant(restaurant);
+        Review updated = reviewRepository.save(existing);
+        updateRestaurantRating(updated.getRestaurant());
+        return reviewMapper.toDTO(updated);
+    }
 
-        repository.save(existing);
-        updateRestaurantRating(restaurant);
+    public void remove(Long id) {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Review not found with id: " + id));
+        reviewRepository.delete(review);
+        updateRestaurantRating(review.getRestaurant());
+    }
 
-        return mapper.toDTO(existing);
+    public List<ReviewResponseDTO> findAll() {
+        return reviewRepository.findAll().stream()
+                .map(reviewMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     private void updateRestaurantRating(Restaurant restaurant) {
-        List<Review> reviews = repository.findAll().stream()
-                .filter(r -> r.getRestaurant().equals(restaurant))
-                .toList();
+        List<Review> reviews = reviewRepository.findByRestaurantId(restaurant.getId());
 
-        double avg = reviews.stream()
-                .mapToInt(Review::getScore)
+        double average = reviews.stream()
+                .mapToInt(Review::getRating)
                 .average()
                 .orElse(0);
 
-        restaurant.setRating(BigDecimal.valueOf(avg).setScale(2, RoundingMode.HALF_UP));
+        restaurant.setRating(BigDecimal.valueOf(average).setScale(2, RoundingMode.HALF_UP));
         restaurantRepository.save(restaurant);
     }
 }

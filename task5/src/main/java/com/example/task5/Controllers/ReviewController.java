@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 @RestController
 @RequestMapping("/api/reviews")
 @RequiredArgsConstructor
@@ -22,44 +23,32 @@ public class ReviewController {
 
     private final ReviewService service;
 
-    @Operation(summary = "Получить все отзывы")
-    @ApiResponse(responseCode = "200", description = "Список отзывов")
     @GetMapping
+    @Operation(summary = "Получить список всех отзывов")
     public List<ReviewResponseDTO> getAll() {
         return service.findAll();
     }
 
-    @Operation(summary = "Создать новый отзыв")
-    @ApiResponse(responseCode = "201", description = "Отзыв создан")
     @PostMapping
-    public ResponseEntity<ReviewResponseDTO> create(
-            @RequestBody
-            @Parameter(description = "Данные нового отзыва", required = true)
-            ReviewRequestDTO dto) {
+    @Operation(summary = "Создать новый отзыв")
+    public ResponseEntity<ReviewResponseDTO> create(@RequestBody ReviewRequestDTO dto) {
         ReviewResponseDTO response = service.save(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "Обновить отзыв по ID")
-    @ApiResponse(responseCode = "200", description = "Отзыв обновлён")
     @PutMapping("/{id}")
+    @Operation(summary = "Обновить отзыв по ID")
     public ResponseEntity<ReviewResponseDTO> update(
-            @Parameter(description = "ID отзыва", required = true)
             @PathVariable Long id,
-            @RequestBody
-            @Parameter(description = "Обновлённые данные отзыва", required = true)
-            ReviewRequestDTO dto) {
+            @RequestBody ReviewRequestDTO dto) {
         ReviewResponseDTO response = service.update(id, dto);
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Удалить отзыв по ID")
-    @ApiResponse(responseCode = "204", description = "Отзыв удалён")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
-            @Parameter(description = "ID отзыва", required = true)
-            @PathVariable Long id) {
-        service.deleteById(id);
+    @Operation(summary = "Удалить отзыв по ID")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.remove(id);
         return ResponseEntity.noContent().build();
     }
 }

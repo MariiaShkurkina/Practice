@@ -28,7 +28,7 @@ public class Review {
 
 
     @NotNull
-    private Integer score;
+    private Integer rating;
 
     private String comment;
 

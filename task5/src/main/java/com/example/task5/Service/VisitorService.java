@@ -18,19 +18,17 @@ public class VisitorService {
 
     public VisitorResponseDTO save(VisitorRequestDTO dto) {
         Visitor visitor = mapper.toEntity(dto);
-        repository.save(visitor);
-        return mapper.toDTO(visitor);
+        Visitor saved = repository.save(visitor);
+        return mapper.toDTO(saved);
     }
 
     public List<VisitorResponseDTO> findAll() {
         return repository.findAll().stream().map(mapper::toDTO).toList();
     }
 
-
     public void deleteById(Long id) {
-        Visitor visitor = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Visitor not found with id: " + id));
-        repository.remove(visitor);
+
+        repository.deleteById(id);
     }
 
     public VisitorResponseDTO update(Long id, VisitorRequestDTO dto) {
@@ -41,8 +39,9 @@ public class VisitorService {
         existingVisitor.setAge(dto.getAge());
         existingVisitor.setGender(dto.getGender());
 
-        repository.save(existingVisitor);
+        Visitor updated = repository.save(existingVisitor);
 
-        return mapper.toDTO(existingVisitor);
+        return mapper.toDTO(updated);
     }
 }
+
